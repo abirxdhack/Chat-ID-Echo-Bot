@@ -6,14 +6,11 @@ from telethon.tl.types import (
     UpdateNewMessage, MessageService,
     RequestedPeerUser, RequestedPeerChat, RequestedPeerChannel
 )
+from config import API_ID, API_HASH, BOT_TOKEN
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Replace these with your actual Telegram API credentials and bot token
-API_ID = 28239710
-API_HASH = '7fc5b35692454973318b86481ab5eca3'
-BOT_TOKEN = '7671261830:AAEW7B_Wd406rBvbEwUiW4uPlHJumUokXaY'
 
 # Start the Telegram client
 client = TelegramClient('bot', API_ID, API_HASH).start(bot_token=BOT_TOKEN)
@@ -77,6 +74,11 @@ async def handle_new_message(event):
                 button_id=6,
                 peer_type=RequestPeerTypeUser(bot=True),
                 max_quantity=1
+            ), KeyboardButtonRequestPeer(
+                text='Premium 🌟',
+                button_id=7,
+                peer_type=RequestPeerTypeUser(premium=True),
+                max_quantity=1
             )]
         ]
 
@@ -121,7 +123,8 @@ async def handle_raw_update(update):
                 3: 'Public Channel',
                 4: 'Private Group',
                 5: 'Public Group',
-                6: 'Bot'
+                6: 'Bot',
+                7: 'Premium User'
             }
             type_ = types.get(button_id, 'Unknown')
 
@@ -139,7 +142,7 @@ async def handle_raw_update(update):
                         channel_id = -1000000000000 - peer.channel_id  # Channel IDs start with -100...
                         response = f"💬 <b>Shared {type_} Info</b>\n🆔 ID: <code>{channel_id}</code>"
                     else:
-                        response = "❌ Unknown peer type shared."
+                        response = "Looks Like I Don't Have Control Over The User"
                         logging.warning("Unknown peer type encountered")
 
                     # Send the response
@@ -151,5 +154,5 @@ async def handle_raw_update(update):
             logging.info("Service message is not a peer sharing event")
 
 # Run the bot
-print("✅ Bot is running... Press Ctrl+C to stop.")
+print("✅Bot Is Up And Running On Telethon")
 client.run_until_disconnected()
