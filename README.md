@@ -53,7 +53,7 @@ Before setting up the bot, ensure you have the following:
 1. **Run the Bot**:
    Start the bot by running the script:
    ```bash
-   python3 quickinfo.py
+   python3 main.py
    ```
    You should see:
    ```
