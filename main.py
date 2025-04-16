@@ -1,21 +1,21 @@
 import logging
-from telethon import TelegramClient, events
+from telethon import TelegramClient, events, utils
 from telethon.tl.types import (
     KeyboardButtonRequestPeer, ReplyKeyboardMarkup, KeyboardButtonRow,
     RequestPeerTypeUser, RequestPeerTypeChat, RequestPeerTypeBroadcast,
     UpdateNewMessage, MessageService,
-    RequestedPeerUser, RequestedPeerChat, RequestedPeerChannel
+    RequestedPeerUser, RequestedPeerChat, RequestedPeerChannel,
+    PeerUser, PeerChat, PeerChannel, User, Chat, Channel
 )
 from config import API_ID, API_HASH, BOT_TOKEN
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-
 # Start the Telegram client
 client = TelegramClient('bot', API_ID, API_HASH).start(bot_token=BOT_TOKEN)
 
-# Handle new messages for /start command
+# Handle new messages for /start command and forwarded messages
 @client.on(events.NewMessage)
 async def handle_new_message(event):
     message = event.message
@@ -98,6 +98,31 @@ async def handle_new_message(event):
             buttons=reply_markup
         )
         logging.info("Sent welcome message with keyboard")
+    elif message.forward is not None:
+        # Handle forwarded message
+        peer = message.forward.saved_from_peer or message.forward.from_id
+        if peer:
+            chat_id_forwarded = utils.get_peer_id(peer)
+            try:
+                entity = await client.get_entity(peer)
+                if isinstance(entity, User):
+                    chat_name = entity.first_name or "User"
+                elif isinstance(entity, (Chat, Channel)):
+                    chat_name = entity.title
+                else:
+                    chat_name = "Unknown"
+                response = (
+                    f"<b>Forward Message Detected</b>\n"
+                    f"<b>Chat Name {chat_name}</b>\n"
+                    f"<b>ChatID {chat_id_forwarded}</b>"
+                )
+            except ValueError:
+                response = "<b>Sorry Bro, Forward Method Not Support For Private Things</b>"
+            
+            await client.send_message(chat_id, response, parse_mode='html')
+            logging.info(f"Sent response: {response}")
+        else:
+            logging.info("Forwarded message but no peer found")
 
 # Handle raw updates to capture peer sharing
 @client.on(events.Raw)
