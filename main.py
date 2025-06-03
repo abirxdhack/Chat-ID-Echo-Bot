@@ -7,11 +7,7 @@ from telethon.tl.types import (
     RequestedPeerUser, RequestedPeerChat, RequestedPeerChannel,
     PeerUser, PeerChat, PeerChannel, User, Chat, Channel
 )
-
-# Bot credentials
-API_ID = 26512884
-API_HASH = "c3f491cd59af263cfc249d3f93342ef8"
-BOT_TOKEN = "8070565065:AAEeYAXN5Dx1hjUmrm86tdiLqRbwbEZGrRw"
+from config import API_ID, API_HASH, BOT_TOKEN
 
 # Mapping of button IDs to types and effect IDs (as integers)
 TYPES = {
