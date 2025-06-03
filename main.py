@@ -7,10 +7,35 @@ from telethon.tl.types import (
     RequestedPeerUser, RequestedPeerChat, RequestedPeerChannel,
     PeerUser, PeerChat, PeerChannel, User, Chat, Channel
 )
-from config import API_ID, API_HASH, BOT_TOKEN
 
-# Set up logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Bot credentials
+API_ID = 26512884
+API_HASH = "c3f491cd59af263cfc249d3f93342ef8"
+BOT_TOKEN = "8070565065:AAEeYAXN5Dx1hjUmrm86tdiLqRbwbEZGrRw"
+
+# Mapping of button IDs to types and effect IDs (as integers)
+TYPES = {
+    1: {'name': 'User', 'effect_id': 5107584321108051014},  # 👍 Thumbs Up
+    2: {'name': 'Private Channel', 'effect_id': 5046589136895476101},  # 💩 Poop
+    3: {'name': 'Public Channel', 'effect_id': 5104841245755180586},  # 🔥 Fire
+    4: {'name': 'Private Group', 'effect_id': 5104858069142078462},  # 👎 Thumbs Down
+    5: {'name': 'Public Group', 'effect_id': 5046509860389126442},  # 🎉 Confetti
+    6: {'name': 'Bot', 'effect_id': 5046509860389126442},  # 🎉 Confetti
+    7: {'name': 'Premium User', 'effect_id': 5046509860389126442}  # 🎉 Confetti
+}
+
+# Message effect ID for the /start command (as integer)
+START_EFFECT_ID = 5104841245755180586  # 🔥 Fire
+
+# Set up logging to console and file
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('error.log'),
+        logging.StreamHandler()
+    ]
+)
 
 # Start the Telegram client
 client = TelegramClient('bot', API_ID, API_HASH).start(bot_token=BOT_TOKEN)
@@ -89,15 +114,28 @@ async def handle_new_message(event):
             single_use=False
         )
 
-        # Send the welcome message with the keyboard
-        await client.send_message(
-            chat_id,
-            welcome_text,
-            parse_mode='html',
-            link_preview=False,
-            buttons=reply_markup
-        )
-        logging.info("Sent welcome message with keyboard")
+        # Send the welcome message with the keyboard and fire effect
+        try:
+            await client.send_message(
+                chat_id,
+                welcome_text,
+                parse_mode='html',
+                link_preview=False,
+                buttons=reply_markup,
+                message_effect_id=START_EFFECT_ID
+            )
+            logging.info("Sent welcome message with keyboard and fire effect")
+        except Exception as e:
+            logging.error(f"Failed to send welcome message: {str(e)}")
+            # Retry without effect
+            await client.send_message(
+                chat_id,
+                welcome_text,
+                parse_mode='html',
+                link_preview=False,
+                buttons=reply_markup
+            )
+            logging.info("Retried welcome message without effect")
     elif message.forward is not None:
         # Handle forwarded message
         peer = message.forward.saved_from_peer or message.forward.from_id
@@ -116,11 +154,28 @@ async def handle_new_message(event):
                     f"<b>Chat Name {chat_name}</b>\n"
                     f"<b>ChatID {chat_id_forwarded}</b>"
                 )
+                effect_id = TYPES.get(6, {}).get('effect_id')  # Use Confetti for forwarded messages
+                try:
+                    await client.send_message(
+                        chat_id,
+                        response,
+                        parse_mode='html',
+                        message_effect_id=effect_id
+                    )
+                    logging.info(f"Sent forwarded message response with effect: {response}")
+                except Exception as e:
+                    logging.error(f"Failed to send forwarded message response: {str(e)}")
+                    # Retry without effect
+                    await client.send_message(
+                        chat_id,
+                        response,
+                        parse_mode='html'
+                    )
+                    logging.info("Retried forwarded message response without effect")
             except ValueError:
                 response = "<b>Sorry Bro, Forward Method Not Support For Private Things</b>"
-            
-            await client.send_message(chat_id, response, parse_mode='html')
-            logging.info(f"Sent response: {response}")
+                await client.send_message(chat_id, response, parse_mode='html')
+                logging.info(f"Sent response: {response}")
         else:
             logging.info("Forwarded message but no peer found")
 
@@ -141,17 +196,10 @@ async def handle_raw_update(update):
             button_id = message.action.button_id
             peers = message.action.peers
 
-            # Map button IDs to types
-            types = {
-                1: 'User',
-                2: 'Private Channel',
-                3: 'Public Channel',
-                4: 'Private Group',
-                5: 'Public Group',
-                6: 'Bot',
-                7: 'Premium User'
-            }
-            type_ = types.get(button_id, 'Unknown')
+            # Get type and effect ID
+            type_info = TYPES.get(button_id, {'name': 'Unknown', 'effect_id': None})
+            type_ = type_info['name']
+            effect_id = type_info['effect_id']
 
             # Process each shared peer
             if peers:
@@ -170,9 +218,24 @@ async def handle_raw_update(update):
                         response = "Looks Like I Don't Have Control Over The User"
                         logging.warning("Unknown peer type encountered")
 
-                    # Send the response
-                    await client.send_message(chat_id, response, parse_mode='html')
-                    logging.info(f"Sent response: {response}")
+                    # Send the response with effect, retry without if it fails
+                    try:
+                        await client.send_message(
+                            chat_id,
+                            response,
+                            parse_mode='html',
+                            message_effect_id=effect_id
+                        )
+                        logging.info(f"Sent response: {response}")
+                    except Exception as e:
+                        logging.error(f"Failed to send peer sharing response: {str(e)}")
+                        # Retry without effect
+                        await client.send_message(
+                            chat_id,
+                            response,
+                            parse_mode='html'
+                        )
+                        logging.info(f"Retried peer sharing response without effect: {response}")
             else:
                 logging.warning("No peers found in the action")
         else:
