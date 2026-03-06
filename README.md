@@ -1,94 +1,128 @@
-# Chat ID Echo Bot
+# QuickInfoBot
+![Telegram Bot](https://img.shields.io/badge/Telegram-Bot-blue?logo=telegram)
+![Python](https://img.shields.io/badge/Python-3.9+-green?logo=python)
+![Telethon](https://img.shields.io/badge/Telethon-Latest-orange)
 
-![Chat ID Echo Bot](https://img.shields.io/badge/Telegram-Bot-blue?logo=telegram)  
-A simple and efficient Telegram bot that helps you fetch chat IDs for users, groups, channels, and bots instantly.
+A fast and feature-rich Telegram bot to instantly fetch detailed info and IDs for users, bots, groups, and channels.
 
-## 📖 Overview
+Maintained by [abirxdhack](https://github.com/abirxdhack) • [Repository](https://github.com/abirxdhack/Chat-ID-Echo-Bot)
 
-The **Chat ID Echo Bot** is a Telegram bot built with Python and the Telethon library. It allows users to quickly retrieve the unique IDs of Telegram entities (users, groups, channels, and bots) by sharing them through a user-friendly keyboard interface. Whether you're a developer needing chat IDs for Telegram API interactions or a user managing groups and channels, this bot makes the process seamless.
-
-This project is maintained by [abirxdhack](https://github.com/abirxdhack) and hosted at [Chat-ID-Echo-Bot](https://github.com/abirxdhack/Chat-ID-Echo-Bot).
+---
 
 ## ✨ Features
 
-- **Fetch Chat IDs Instantly**: Retrieve IDs for users, bots, private/public groups, and private/public channels.
-- **User-Friendly Interface**: Interactive keyboard with buttons to share different types of Telegram entities.
-- **Reliable and Fast**: Built with Telethon for efficient Telegram API interactions.
-- **Logging Support**: Includes detailed logging for debugging and monitoring.
-- **Open Source**: Feel free to contribute or customize the bot for your needs!
+- **Shared Peer Info** — Share any user, bot, group, or channel via keyboard buttons and get full details with profile photo instantly
+- **Forwarded Message Info** — Forward any message to extract the sender's ID, name, and photo
+- **Username Lookup** — Send `@username` directly to get profile info
+- **Inline Mode** — Use `@BotUsername query` in any chat to look up entities inline
+- **Link Generator** — Get Android/iOS deep links and join links for any entity
+- **Admin & Owner Chat Finder** — Dedicated buttons to share chats where you're an admin or owner
+- **Profile Photos** — Fetched directly from the shared peer object, no extra API calls
+- **Non-blocking Handlers** — All heavy operations run as async tasks via `@new_task`
+- **Smart Buttons** — All keyboards built with the `SmartButtons` class for clean and consistent UI
+- **Flood & Error Handling** — All network calls wrapped with FloodWait, blocked user, and general error handling
+
+---
 
 ## 📋 Prerequisites
 
-Before setting up the bot, ensure you have the following:
+- Python 3.9+
+- `API_ID` and `API_HASH` from [my.telegram.org](https://my.telegram.org)
+- `BOT_TOKEN` from [BotFather](https://t.me/BotFather)
 
-- **Python 3.9+**: The bot is written in Python.
-- **Telegram API Credentials**: You’ll need an `API_ID` and `API_HASH` from [my.telegram.org](https://my.telegram.org).
-- **Bot Token**: Create a bot via [BotFather](https://t.me/BotFather) on Telegram to get a `BOT_TOKEN`.
-- **Telethon Library**: The bot uses Telethon to interact with Telegram’s API.
+---
 
 ## 🛠 Installation
 
-1. **Clone the Repository**:
-   ```bash
-   git clone https://github.com/abirxdhack/Chat-ID-Echo-Bot.git
-   cd Chat-ID-Echo-Bot
-   ```
+```bash
+git clone https://github.com/abirxdhack/Chat-ID-Echo-Bot.git
+cd Chat-ID-Echo-Bot
+pip install telethon python-dateutil
+```
 
-2. **Install Dependencies**:
-   Install the required Python packages using `pip`:
-   ```bash
-   pip install telethon
-   ```
+Edit `config.py` with your credentials:
 
-3. **Set Up Your Credentials**:
-   Open `quickinfo.py` and replace the placeholder credentials with your own:
-   ```python
-   API_ID = 28239710  # Replace with your API ID
-   API_HASH = '7fc5b35692454973318b86481ab5eca3'  # Replace with your API Hash
-   BOT_TOKEN = '7671261830:AAEW7B_Wd406rBvbEwUiW4uPlHJumUokXaY'  # Replace with your Bot Token
-   ```
+```python
+API_ID    = "your_api_id"
+API_HASH  = "your_api_hash"
+BOT_TOKEN = "your_bot_token"
+ADMIN_ID  = 123456789
+```
+
+---
 
 ## 🚀 Usage
 
-1. **Run the Bot**:
-   Start the bot by running the script:
-   ```bash
-   python3 main.py
-   ```
-   You should see:
-   ```
-   ✅ Bot is running... Press Ctrl+C to stop.
-   ```
+```bash
+python3 main.py
+```
 
-2. **Interact with the Bot**:
-   - Open Telegram and start a chat with your bot (find it using the username you set via BotFather).
-   - Send the `/start` command to see the welcome message and keyboard.
-   - Click a button (e.g., "👤 User", "🔒 Private Group", or "🌐 Public Channel") and share the requested entity.
-   - The bot will reply with the chat ID, e.g.:
-     ```
-     👤 Shared User Info
-     🆔 ID: 5857628904
-     ```
+Then in Telegram:
 
-## 📜 Code Structure
+| Action | Result |
+|---|---|
+| `/start` | Welcome message with sharing keyboard |
+| `/me` | Your own profile info |
+| `/info @username` | Profile info for any entity |
+| `/link @username` | Deep links for any entity |
+| `/admin` | Share a chat where you're an admin |
+| `/my` | Share a chat you own |
+| `/help` | Full feature guide |
+| Send `@username` | Instant username lookup |
+| Forward a message | Extract sender info |
+| Inline `@bot query` | Inline entity lookup in any chat |
 
-- **`quickinfo.py`**: The main script containing the bot logic, including the event handlers for `/start` and peer sharing.
-- **Logging**: The bot uses Python’s `logging` module to log events, making it easy to debug issues.
+---
+
+## 📁 Project Structure
+
+```
+QuickInfoBot/
+├── main.py               # Entry point
+├── bot.py                # Telethon client
+├── config.py             # Credentials and settings
+├── core/
+│   └── start.py          # /start command
+├── modules/
+│   ├── admin.py          # /admin command
+│   ├── callback.py       # Reply keyboard button handlers
+│   ├── fwd.py            # Forwarded message handler
+│   ├── help.py           # /help command
+│   ├── info.py           # /info and /id commands
+│   ├── inline.py         # Inline query handler
+│   ├── link.py           # /link command
+│   ├── me.py             # /me command
+│   ├── my.py             # /my command
+│   └── username.py       # @username handler
+├── shared/
+│   └── chatinfo.py       # Shared peer handler
+├── miscs/
+│   ├── startbtn.py       # Main menu keyboard
+│   ├── adbtn.py          # Admin keyboard
+│   └── mybtn.py          # Owner keyboard
+└── utils/
+    ├── logger.py          # Logging setup
+    ├── decorators.py      # @new_task, clean_download
+    ├── buttons.py         # SmartButtons class
+    ├── helpers.py         # Formatters, DC info, account age
+    └── functions.py       # send_message, edit_message, etc.
+```
+
+---
 
 ## 🤝 Contributing
 
-Contributions are welcome! If you have ideas for new features or improvements, feel free to:
+1. Fork the repo
+2. Create a branch: `git checkout -b feature/your-feature`
+3. Commit your changes: `git commit -m 'Add feature'`
+4. Push and open a pull request
 
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/your-feature`).
-3. Make your changes and commit them (`git commit -m 'Add your feature'`).
-4. Push to the branch (`git push origin feature/your-feature`).
-5. Open a pull request.
+---
 
 ## 📄 License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+MIT License — see [LICENSE](LICENSE) for details.
 
 ## 📧 Contact
 
-For questions, suggestions, or support, reach out to [abirxdhack](https://github.com/abirxdhack) via GitHub Issues or Telegram (@TheSmartDev).
+[abirxdhack](https://github.com/abirxdhack) • Telegram: [@TheSmartDev](https://t.me/TheSmartDev)
